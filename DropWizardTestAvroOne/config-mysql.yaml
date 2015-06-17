@@ -1,0 +1,26 @@
+#Basic server config
+server:
+  type: simple
+  applicationContextPath: /
+  adminContextPath: /admin
+  rootPath: "/api/*"
+  connector:
+    type: http
+    port: 8080
+  gzip:
+    bufferSize: 8KiB
+
+
+#Initial instructions message shown in dropwizard console output
+message: DropWizardCallDisplay initial instructions message. No special instructions.
+
+#Tablename and key columnname
+avrotablename: TestRecOne
+avrokeycol: datasetID
+
+#Database config
+database:
+    driverClass: com.mysql.jdbc.Driver
+    user: root
+    password: cloudera
+    url: jdbc:mysql://localhost/DropWizardTestAvroOne

@@ -1,0 +1,33 @@
+#Basic server config
+server:
+  type: simple
+  applicationContextPath: /
+  adminContextPath: /admin
+  rootPath: "/api/*"
+  connector:
+    type: http
+    port: 8080
+  gzip:
+    bufferSize: 8KiB
+
+
+#Initial instructions message shown in dropwizard console output
+message: DropWizardCallDisplay initial instructions message. No special instructions.
+
+#Tablename and key columnname
+avrotablename: TestRecOne
+avrokeycol: datasetID
+
+#Database config
+database:
+    driverClass: org.apache.hive.jdbc.HiveDriver
+    user: username
+    password: password
+    url: jdbc:hive2://localhost:10000/DropWizardTestAvroOne
+    validationQuery: SELECT 1
+    initializationQuery: SET hive.resultset.use.unique.column.names=false
+    autoCommentsEnabled: false
+    logValidationErrors: true
+    initialSize: 1
+    minSize: 1
+    maxSize: 1

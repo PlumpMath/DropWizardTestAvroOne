@@ -1,0 +1,24 @@
+{"namespace": "com.awcoleman.examples.DropWizardTestAvroOne.avro",
+ "type": "record",
+ "name": "TestRecOne",
+ "schemaLastUpdateDate": "20150614","schemaLastUpdateBy": "awcoleman",
+ "doc": "Created for the DropWizardTestAvroOne test application",
+ "notes": "Not including type bytes example field since Hive jdbc does not support getBytes",
+ "fields": [
+     {"name": "datasetID", "type": "string"},
+	 {"name": "recordID", "type": "long"},
+	 {"name": "fieldOne", "type": "boolean"},
+	 {"name": "fieldTwo", "type": ["null", "boolean"]},
+	 {"name": "fieldThree", "type": "int"},
+	 {"name": "fieldFour", "type": "long"},
+	 {"name": "fieldFive", "type": ["null", "long"], "default": null},
+	 {"name": "fieldSix", "type": "float"},
+	 {"name": "fieldSeven", "type": ["null", "float"]},
+	 {"name": "fieldEight", "type": "double"},
+	 {"name": "fieldNine", "type": ["null", "double"]},
+	 {"name": "fieldTen", "type": "string"},
+	 {"name": "fieldEleven", "type": ["null", "string"]},
+	 {"name": "fieldTwelve", "type": "string"},
+	 {"name": "fieldThirteen", "type": ["null", "string"]}
+ ]
+}
