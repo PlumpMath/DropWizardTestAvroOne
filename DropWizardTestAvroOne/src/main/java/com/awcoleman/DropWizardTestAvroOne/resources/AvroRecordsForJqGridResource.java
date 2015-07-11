@@ -1,6 +1,7 @@
 package com.awcoleman.DropWizardTestAvroOne.resources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.awcoleman.DropWizardTestAvroOne.DWTestAvroOneConfiguration;
 import com.awcoleman.DropWizardTestAvroOne.dao.AvroRecordDAO;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /*
  * Return JSON data in format ready for use in jqGrid for
@@ -39,10 +38,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Produces(MediaType.APPLICATION_JSON)
 public class AvroRecordsForJqGridResource {
 
-
 	@SuppressWarnings("rawtypes")
 	private final static Class avroSRClass = com.awcoleman.examples.DropWizardTestAvroOne.avro.TestRecOne.class;
 
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(AvroRecordsForJqGridResource.class);
 
 	private final AvroRecordDAO avrorecDao;
@@ -66,17 +65,14 @@ public class AvroRecordsForJqGridResource {
 			HashSet<SpecificRecordBase> avrorecswrapper = new HashSet<SpecificRecordBase>();
 			avrorecswrapper.addAll(avrorecs);
 
-			//Use temporary hack method to create String holding JSON representation of Set of Avro SpecificRecords
-			String griddatajson = AvroRecordsResource.specificRecordSetToJSONarray(avrorecswrapper,avroSRClass);
-
+			Map<String,Object> collForJQGrid = new HashMap<String,Object>();
 			
-			String colnamejson=avroSRColNamestoJQcolNames(avroSRClass);
+			collForJQGrid.put("datasetid",datasetid);
+			collForJQGrid.put("gridData",avrorecswrapper);
+			collForJQGrid.put("colNames",avroSRColNamestoJQcolNames(avrorecs.iterator().next().getClass()));
+			collForJQGrid.put("colModel",avroSRColNamestoJQcolModel(avrorecs.iterator().next().getClass()));
 
-			String colmodeljson=avroSRColNamestoJQcolModel(avroSRClass);
-			
-			String jqresp=concatStringsForJqGrid(datasetid,colnamejson,colmodeljson,griddatajson);
-
-			retResp = Response.ok(jqresp, MediaType.APPLICATION_JSON).build();
+			retResp = Response.ok(collForJQGrid).build();
 		} else {
 			//if no records in set, create empty set so JSON output is similar to JSON with records (Could just change this to send "[]").
 			HashSet<ArrayList<String>> emptywrapper = new HashSet<ArrayList<String>>();
@@ -86,43 +82,12 @@ public class AvroRecordsForJqGridResource {
 		}
 		return retResp;
 	}
-
+		
 	/*
-	 * Hack to combine jqGrid component JSON strings into a JSON object to send to jqGrid
-	 * 
-	 */
-	private String concatStringsForJqGrid(String datasetid, String colnamejson, String colmodeljson, String griddatajson) {
-		String jqgridresp = null;
-		StringBuilder jqbldr = new StringBuilder();
-		
-		jqbldr.append("{");
-		jqbldr.append("\"datasetid\" :");
-		jqbldr.append("\""+datasetid+"\",");
-
-		jqbldr.append("\"colNames\" :");
-		jqbldr.append(colnamejson);
-		jqbldr.append(",");
-
-		jqbldr.append("\"colModel\" :");
-		jqbldr.append(colmodeljson);
-		jqbldr.append(",");
-		
-		jqbldr.append("\"gridData\" :");
-		jqbldr.append(griddatajson);
-		
-		jqbldr.append("}");
-
-		jqgridresp = jqbldr.toString();
-		return jqgridresp;
-	}
-
-	/*
-	 * Create String of JSON of column names for jqGrid colNames
+	 * Create List<String> column names for jqGrid colNames
 	 */
 	@SuppressWarnings("rawtypes")
-	public static String avroSRColNamestoJQcolNames(Class avroClass) {
-		String colnamejson=null;
-
+	public static List<String> avroSRColNamestoJQcolNames(Class avroClass) {
 		Schema schema = ReflectData.get().getSchema(avroClass);
 		List<Schema.Field> schemaFields = schema.getFields();
 
@@ -130,35 +95,22 @@ public class AvroRecordsForJqGridResource {
 		for (Schema.Field thisField : schemaFields) {
 			schemaFieldNames.add(thisField.name());
 		}
-				
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			colnamejson = mapper.writeValueAsString(schemaFieldNames);
-		} catch (JsonProcessingException jpe) {
-			LOGGER.warn("Unable to create JSON colNames from schemaFieldNames. Returning emtpy JSON array. Exception: ",jpe);
-			colnamejson = "[]";
-		}
-
-		return colnamejson;
+		
+		return schemaFieldNames;
 	}
-
+	
 	/*
-	 * Create String of JSON of column names and some parameters for jqGrid colModel
+	 * Create List<Map<String,Object>> of column names and some parameters for jqGrid colModel
 	 */
 	@SuppressWarnings("rawtypes")
-	public static String avroSRColNamestoJQcolModel(Class avroClass) {
-		String colmodeljson=null;
+	public static List<Map<String,Object>> avroSRColNamestoJQcolModel(Class avroClass) {
 
 		Schema schema = ReflectData.get().getSchema(avroClass);
 		List<Schema.Field> schemaFields = schema.getFields();
 
 		List<Map<String,Object>> schemaColModel = new ArrayList<Map<String,Object>>();
 
-		
-		//List<String> schemaFieldNames = new ArrayList<String>();
-		for (Schema.Field thisField : schemaFields) {
-			//schemaFieldNames.add(thisField.name());
-			
+		for (Schema.Field thisField : schemaFields) {			
 			Map<String,Object> params = new HashMap<String,Object>();
 			
 			params.put("name", thisField.name());
@@ -167,14 +119,6 @@ public class AvroRecordsForJqGridResource {
 			schemaColModel.add(params);
 		}
 		
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			colmodeljson = mapper.writeValueAsString(schemaColModel);
-		} catch (JsonProcessingException jpe) {
-			LOGGER.warn("Unable to create JSON colModel from schemaColModel. Returning emtpy JSON array. Exception: ",jpe);
-			colmodeljson = "[]";
-		}
-	
-		return colmodeljson;
+		return schemaColModel;
 	}
 }

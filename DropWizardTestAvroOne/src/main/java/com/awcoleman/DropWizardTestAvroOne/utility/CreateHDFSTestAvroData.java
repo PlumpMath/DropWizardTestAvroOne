@@ -173,7 +173,7 @@ public class CreateHDFSTestAvroData {
 		}
 	    dfw.close();
 	    outstr.close();
-
+	    dfwo.close();
 	}
 
 	public static void main(String[] args) throws IOException {

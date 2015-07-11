@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import com.awcoleman.DropWizardTestAvroOne.resources.AvroRecordsForJqGridResource;
 import com.awcoleman.DropWizardTestAvroOne.resources.AvroRecordsResource;
 import com.awcoleman.DropWizardTestAvroOne.resources.ViewJqGrid;
+
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.auth.AuthFactory;
@@ -22,16 +23,12 @@ import io.dropwizard.views.ViewBundle;
  * This is an example DropWizard application to fetch data from an Avro-backed Hive table.
  * The HTTP auth username and password are set in DWTestAvroOneAuthenticator as test/test
  * The Hive database name, table name, and key column name are in config.yaml
+ * 
  * The Avro schema is in src/main/avro
  * To change to a different schema, change:
  *    com.awcoleman.DropWizardTestAvroOne.dao.mappers.AvroRecordMapper
  *    		BeanMapper<TestRecOne>
  *    		super(TestRecOne.class)
- *    com.awcoleman.DropWizardTestAvroOne.resources.AvroRecordsResource
- *    		avroSRClass = com.awcoleman.examples.DropWizardTestAvroOne.avro.TestRecOne.class
- *	  com.awcoleman.DropWizardTestAvroOne.resources.AvroRecordsForJqGridResource
- *			avroSRClass = com.awcoleman.examples.DropWizardTestAvroOne.avro.TestRecOne.class
- *
  *
  * In Dev env in Eclipse, run as
  *   cd ~/git/DropWizardTestAvroOne/DropWizardTestAvroOne/
@@ -61,6 +58,9 @@ public class App extends Application<DWTestAvroOneConfiguration> {
 	public void run(DWTestAvroOneConfiguration c, Environment e)throws Exception {
 		LOGGER.info("DropWizardTestAvroOne run. Initial message: "+c.getMessage());
 
+		com.fasterxml.jackson.databind.ObjectMapper om = e.getObjectMapper();
+		om.addMixInAnnotations(org.apache.avro.specific.SpecificRecordBase.class, com.awcoleman.DropWizardTestAvroOne.utility.SpecificRecordBaseMixin.class);
+		
 		// Create a DBI factory and build a JDBI instance
 		final DBIFactory factory = new DBIFactory();
 		final DBI jdbi = factory.build(e, c.getDataSourceFactory(), "maindb");
@@ -74,7 +74,7 @@ public class App extends Application<DWTestAvroOneConfiguration> {
 		// Add the resources to the environment
 		e.jersey().register(new AvroRecordsResource(jdbi,c ));
 		e.jersey().register(new AvroRecordsForJqGridResource(jdbi, c));
-
+		
 		e.jersey().register(new ViewJqGrid());
 
 	}

@@ -45,6 +45,9 @@ sed -i "/\"schemaLastUpdateDate\"\s*:/d" ${workfn}
 sed -i "/\"schemaLastUpdateBy\"\s*:/d" ${workfn}
 sed -i "/\"notes\"\s*:/d" ${workfn}
 
+#Try removing default modifier
+sed -i "s/\s*\"default\"\s*:\s*\<.*\>//" ${workfn}
+
 #Convert field types (not a complete list of avro primitive types, just the ones I normally use)
 defvarchar="VARCHAR(250)"
 sed -i "s/\"type\"\s*:\s*\"string\"/ ${defvarchar},/" ${workfn}
